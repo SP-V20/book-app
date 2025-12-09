@@ -1,0 +1,35 @@
+{
+  "name": "book-app",
+  "version": "1.0.0",
+  "description": "App to maintain book records",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "debug": "nodemon --inspect index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SP-V20/book-app.git"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.5.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/SP-V20/book-app/issues"
+  },
+  "homepage": "https://github.com/SP-V20/book-app#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
