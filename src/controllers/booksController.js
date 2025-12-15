@@ -1,63 +1,83 @@
-const db = require('../../db');
+const BookModel = require('../models/book');
 
 class BooksController {
-    addBook(req,res) {
-        const { id,title } = req.body || {};
-        if (!title || !id) return res.status(400).json({ error: 'title and id required' });
-
-        db.prepare('INSERT INTO books (id, title) VALUES (?, ?)').run(id, title);
-
-        res.status(201).json(req.body);
-    }
-
-    getBooks(req, res) {
-        const rows = db.prepare('SELECT id, title FROM books').all();
-        if(rows.length === 0) {
-            console.log("No books found in the database.");
-            return res.json("No books available");
-        } else {
-            console.log(`Found ${rows.length} books in the database.`);
-            return res.json(rows);
+    getBooks(req, res, next) {
+        try {
+            const books = BookModel.findAll();
+            if (books.length === 0) {
+                return res.json("No books available");
+            }
+            return res.json(books);
+        } catch (err) {
+            console.error(err);
+            // return res.status(500).json({ error: err.message || 'Failed to get books' });
+            next(err);
         }
     }
 
-    getBookById(req, res) {
-        const id = req.params.id;
-        const row = db.prepare('SELECT id, title FROM books WHERE id = ?').get(id);
-        if (!row) {
-            console.log(`Book with id ${id} not found.`);
-            return res.status(404).json({ error: `Book with id ${id} not found.`});
-        } else {
-            console.log(`Book with id ${id} found:`, row);
-            return res.json(row);
+    getBookById(req, res, next) {
+        try {
+            const book = BookModel.findById(req.params.id);
+            if (!book) {
+                return res.status(404).json({ error: `Book with id ${req.params.id} not found.` });
+            }
+            return res.json(book);
+        } catch (err) {
+            console.error(err);
+            // return res.status(500).json({ error: err.message || 'Failed to get book' });
+            next(err);
         }
     }
 
-    deleteBook(req, res) {
-        const id = req.params.id;
-        const result = db.prepare('DELETE FROM books WHERE id = ?').run(id);
-        if (result.changes === 0) {
-            console.log(`Book with id ${id} not found for deletion.`);
-            return res.status(404).json({ error: `Book with id ${id} not found.`});
-        } else {
-            console.log(`Book with id ${id} deleted successfully.`);
-            return res.json({ message: `Book with id ${id} deleted successfully.`});
+    addBook(req, res, next) {
+        const { id, title } = req.body || {};
+        if (!id || !title) {
+            return res.status(400).json({ error: 'ID and title are required' });
+        }
+
+        try {
+            const book = BookModel.create({ id, title });
+            return res.status(201).json(book);
+        } catch (err) {
+            console.error('Error creating book:', err);
+            // return res.status(500).json({ error: 'Failed to create book', message: err.message });
+            next(err);
         }
     }
 
-    updateBook(req, res) {
-        const id = req.params.id;
+    updateBook(req, res, next) {
         const { title } = req.body || {};
-        if (!title) return res.status(400).json({ error: 'title is required' });
+        const id = req.params.id;
 
-        const result = db.prepare('UPDATE books SET title = ? WHERE id = ?').run(title, id);
-        if (result.changes === 0) {
-            console.log(`Book with id ${id} not found for update.`);
-            return res.status(404).json({ error: `Book with id ${id} not found.`});
-        } else {
-            console.log(`Book with id ${id} updated successfully.`);
+        if (!title) return res.status(400).json({ error: 'Title is required' });
+
+        try {
+            const result = BookModel.update(id, title);
+            if (!result || result.changes === 0) {
+                return res.status(404).json({ error: `Book with id ${id} not found.` });
+            }
             return res.json({ id, title });
+        } catch (err) {
+            console.error(err);
+            // return res.status(500).json({ error: err.message || 'Failed to update book' });
+            next(err);
+        }
+    }
+
+    deleteBook(req, res, next) {
+        const id = req.params.id;
+        try {
+            const result = BookModel.delete(id);
+            if (!result || result.changes === 0) {
+                return res.status(404).json({ error: `Book with id ${id} not found.` });
+            }
+            return res.json({ message: `Book with id ${id} deleted successfully.` });
+        } catch (err) {
+            console.error(err);
+            // return res.status(500).json({ error: err.message || 'Failed to delete book' });
+            next(err);
         }
     }
 }
+
 module.exports = BooksController;
